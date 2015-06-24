@@ -1,1 +1,3 @@
 myblog.com
+tublog.com
+sublog.com
