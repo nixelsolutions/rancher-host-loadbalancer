@@ -2,4 +2,4 @@ myblog.com:1080
 tublog.com:1081
 sublog.com:1082
 tublog.com2:1083
-sublog.com2:1084
+sublog.com3:1084
