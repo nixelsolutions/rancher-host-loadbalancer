@@ -9,6 +9,7 @@ if [ "${HAPROXY_PASSWORD}" == "**ChangeMe**" -o -z "${HAPROXY_PASSWORD}" ]; then
    HAPROXY_PASSWORD=`pwgen -s 20 1`
 fi
 
+sleep 3
 MY_PUBLIC_IP=`dig -4 @ns1.google.com -t txt o-o.myaddr.l.google.com +short | sed "s/\"//g"`
 
 echo "=> You can access HAProxy stats by browsing to http://${MY_PUBLIC_IP}:${HAPROXY_STATS_PORT}"
@@ -63,7 +64,7 @@ backend ${domain}\n\
   #option httpclose\n\
   http-check disable-on-404\n\
   http-check expect string ${HAPROXY_CHECK_STRING}\n\
-  option httpchk GET ${HAPROXY_CHECK} HTTP/1.0\n\"
+  option httpchk GET ${HAPROXY_CHECK} HTTP/1.0\n"
 
 done
 
