@@ -36,7 +36,9 @@ for domain_cfg in `cat ${DOMAIN_LIST}`; do
 
   # Get servers for backend
   # If no servers are found, print a warning and continue
+  set +e
   BACKEND_SERVERS=`dig +short ${domain} | grep "^10.42"`
+  set -e
   if [ `echo "${BACKEND_SERVERS}" | grep . | wc -l` -eq 0 ]; then 
     echo "***** WARNING ***** COULD NOT FIND ANY CONTAINER FOR DOMAIN ${domain} - SKIPPING THIS DOMAIN"
     echo "***** WARNING ***** THIS IS A FATAL ERROR IF WP CONTAINERS ALREADY EXIST FOR DOMAIN ${domain}"
