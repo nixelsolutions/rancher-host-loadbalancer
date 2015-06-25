@@ -19,6 +19,11 @@ echo "=> And authenticating with user \"haproxy\" and password \"${HAPROXY_PASSW
 perl -p -i -e "s/#\\\$ModLoad imudp/\\\$UDPServerAddress 127.0.0.1\n\\\$ModLoad imudp/g" /etc/rsyslog.conf
 perl -p -i -e "s/#\\\$UDPServerRun 514/\\\$UDPServerRun 514/g" /etc/rsyslog.conf
 
+
+### Configure haproxy
+perl -p -i -e "s/ENABLED=0/ENABLED=1/g" /etc/default/haproxy 
+cp -p /etc/haproxy/haproxy.cfg.template /etc/haproxy/haproxy.cfg
+
 ### Replace haproxy env vars
 perl -p -i -e "s/HAPROXY_MAXCONN/${HAPROXY_MAXCONN}/g" /etc/haproxy/haproxy.cfg
 perl -p -i -e "s/HAPROXY_TIMEOUT_CONNECT/${HAPROXY_TIMEOUT_CONNECT}/g" /etc/haproxy/haproxy.cfg
@@ -27,9 +32,6 @@ perl -p -i -e "s/HAPROXY_TIMEOUT_CLIENT/${HAPROXY_TIMEOUT_CLIENT}/g" /etc/haprox
 perl -p -i -e "s/HAPROXY_HTTP_PORT/${HAPROXY_HTTP_PORT}/g" /etc/haproxy/haproxy.cfg
 perl -p -i -e "s/HAPROXY_STATS_PORT/${HAPROXY_STATS_PORT}/g" /etc/haproxy/haproxy.cfg
 perl -p -i -e "s/HAPROXY_PASSWORD/${HAPROXY_PASSWORD}/g" /etc/haproxy/haproxy.cfg
-
-### Configure haproxy
-perl -p -i -e "s/ENABLED=0/ENABLED=1/g" /etc/default/haproxy 
 
 # Configure all domains
 ACL_RULES="# ACL RULES HERE"
@@ -80,15 +82,13 @@ done
 ACL_RULES=`echo "${ACL_RULES}" | sed "s/\//\\\\\\\\\//g"`
 BACKENDS=`echo "${BACKENDS}" | sed "s/\//\\\\\\\\\//g"`
 
-if grep "# NOT CONFIGURED" /etc/haproxy/haproxy.cfg >/dev/null; then
-  echo "=> Generating HAProxy configuration..."
-  # Insert ACLs and Backends
-  perl -p -i -e "s/# ACL RULES HERE.*/${ACL_RULES}/g" /etc/haproxy/haproxy.cfg
-  perl -p -i -e "s/# BACKENDS HERE.*/${BACKENDS}/g" /etc/haproxy/haproxy.cfg
+echo "=> Generating HAProxy configuration..."
+# Insert ACLs and Backends
+perl -p -i -e "s/# ACL RULES HERE.*/${ACL_RULES}/g" /etc/haproxy/haproxy.cfg
+perl -p -i -e "s/# BACKENDS HERE.*/${BACKENDS}/g" /etc/haproxy/haproxy.cfg
 
-  # Mark file as configured
-  perl -p -i -e "s/# NOT CONFIGURED/# CONFIGURED/g" /etc/haproxy/haproxy.cfg
-fi
+# Mark file as configured
+perl -p -i -e "s/# NOT CONFIGURED/# CONFIGURED/g" /etc/haproxy/haproxy.cfg
 
 echo "=> Starting HAProxy..."
 /usr/bin/supervisord

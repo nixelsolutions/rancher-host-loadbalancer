@@ -31,7 +31,7 @@ RUN mkdir -p /usr/local/bin
 ADD ./bin /usr/local/bin
 RUN chmod +x /usr/local/bin/*.sh
 ADD ./etc/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-ADD ./etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg
+ADD ./etc/haproxy/haproxy.cfg.template /etc/haproxy/haproxy.cfg.template
 ADD ./etc/domain_list.txt ${DOMAIN_LIST}
 
 CMD ["/usr/local/bin/run.sh"]
