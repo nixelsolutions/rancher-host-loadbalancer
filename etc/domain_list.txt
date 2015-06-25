@@ -1,5 +1,2 @@
 myblog.com:1080
-tublog.com:1081
-sublog.com:1082
-tublog.com2:1083
-sublog.com3:1084
+yourblog.com:1081
