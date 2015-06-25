@@ -48,7 +48,7 @@ for domain_cfg in `cat ${DOMAIN_LIST}`; do
   for server in ${BACKEND_SERVERS}; do
     SERVERS="${SERVERS}\n\
     server wp${SERVERS_COUNT} ${server}:${domain_port} port ${domain_port} check inter ${HAPROXY_CHECK_INTERVAL} rise ${HAPROXY_CHECK_RISE} fall ${HAPROXY_CHECK_FALL}" 
-    PXC_HOSTS_COUNTER=$((PXC_HOSTS_COUNTER+1))
+    SERVERS_COUNT=$((SERVERS_COUNT+1))
   done
 
   # Create ACL rules (domain based LB)
@@ -64,7 +64,8 @@ backend ${domain}\n\
   #option httpclose\n\
   http-check disable-on-404\n\
   http-check expect string ${HAPROXY_CHECK_STRING}\n\
-  option httpchk GET ${HAPROXY_CHECK} HTTP/1.0\n"
+  option httpchk GET ${HAPROXY_CHECK} HTTP/1.0\n\
+  ${SERVERS}"
 
 done
 
@@ -76,7 +77,7 @@ if grep "# NOT CONFIGURED" /etc/haproxy/haproxy.cfg >/dev/null; then
   echo "=> Generating HAProxy configuration..."
   # Insert ACLs and Backends
   perl -p -i -e "s/# ACL RULES HERE.*/${ACL_RULES}/g" /etc/haproxy/haproxy.cfg
-  perl -p -i -e "s/# BACKENDS HERE.*/${BACKENDS}\n${SERVERS}/g" /etc/haproxy/haproxy.cfg
+  perl -p -i -e "s/# BACKENDS HERE.*/${BACKENDS}/g" /etc/haproxy/haproxy.cfg
 
   # Mark file as configured
   perl -p -i -e "s/# NOT CONFIGURED/# CONFIGURED/g" /etc/haproxy/haproxy.cfg
