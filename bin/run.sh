@@ -29,22 +29,41 @@ perl -p -i -e "s/ENABLED=0/ENABLED=1/g" /etc/default/haproxy
 # Configure all domains
 ACL_RULES="# ACL RULES HERE"
 BACKENDS="# BACKENDS HERE"
-for domain in `cat ${DOMAIN_LIST}`; do
+for domain_cfg in `cat ${DOMAIN_LIST}`; do
+  domain=`echo "${domain_cfg}" | awk -F: '{print $1}'`
+  domain_port=`echo "${domain_cfg}" | awk -F: '{print $2}'`
 
-   ACL_RULES="${ACL_RULES}\n\
+  # Get servers for backend
+  # If no servers are found, print a warning and continue
+  BACKEND_SERVERS=`dig +short ${domain}`
+  if [ `echo "${BACKEND_SERVERS}" | grep . | wc -l` -eq 0 ]; then 
+    echo "***** WARNING ***** COULD NOT FIND ANY CONTAINER FOR DOMAIN ${domain} - SKIPPING THIS DOMAIN"
+    echo "***** WARNING ***** THIS IS A FATAL ERROR IF WP CONTAINERS ALREADY EXIST FOR DOMAIN ${domain}"
+    echo "***** WARNING ***** MAYBE YOU DID NOT CREATE THE SERVICE LINKING WITH NAME \"${domain}\"?"
+    continue
+  fi
+
+  SERVERS_COUNT=0
+  for server in ${BACKEND_SERVERS}; do
+    SERVERS="${SERVERS}\n\
+    server wp${SERVERS_COUNT} ${server}:${domain_port} port ${domain_port} check inter ${HAPROXY_CHECK_INTERVAL} rise ${HAPROXY_CHECK_RISE} fall ${HAPROXY_CHECK_FALL}" 
+    PXC_HOSTS_COUNTER=$((PXC_HOSTS_COUNTER+1))
+  done
+
+  # Create ACL rules (domain based LB)
+  ACL_RULES="${ACL_RULES}\n\
   acl host_${domain} hdr(host) -i ${domain}\n\
   use_backend ${domain} if host_${domain}\n" 
 
-   BACKENDS="${BACKENDS}\n\
+  # Create backend section
+  BACKENDS="${BACKENDS}\n\
 backend ${domain}\n\
   balance roundrobin\n\
   option forwardfor\n\
   #option httpclose\n\
   http-check disable-on-404\n\
   http-check expect string ${HAPROXY_CHECK_STRING}\n\
-  option httpchk GET ${HAPROXY_CHECK} HTTP/1.0\n\
-  \n\
-  server prodfbk06 10.110.4.135:18021 port 18021 check inter 2000 rise 2 fall 3\n"
+  option httpchk GET ${HAPROXY_CHECK} HTTP/1.0\n\"
 
 done
 
@@ -56,7 +75,7 @@ if grep "# NOT CONFIGURED" /etc/haproxy/haproxy.cfg >/dev/null; then
   echo "=> Generating HAProxy configuration..."
   # Insert ACLs and Backends
   perl -p -i -e "s/# ACL RULES HERE.*/${ACL_RULES}/g" /etc/haproxy/haproxy.cfg
-  perl -p -i -e "s/# BACKENDS HERE.*/${BACKENDS}/g" /etc/haproxy/haproxy.cfg
+  perl -p -i -e "s/# BACKENDS HERE.*/${BACKENDS}\n${SERVERS}/g" /etc/haproxy/haproxy.cfg
 
   # Mark file as configured
   perl -p -i -e "s/# NOT CONFIGURED/# CONFIGURED/g" /etc/haproxy/haproxy.cfg
