@@ -15,6 +15,10 @@ MY_PUBLIC_IP=`dig -4 @ns1.google.com -t txt o-o.myaddr.l.google.com +short | sed
 echo "=> You can access HAProxy stats by browsing to http://${MY_PUBLIC_IP}:${HAPROXY_STATS_PORT}"
 echo "=> And authenticating with user \"haproxy\" and password \"${HAPROXY_PASSWORD}\"" 
 
+### Enabling rsyslogd
+perl -p -i -e "s/#\\\$ModLoad imudp/\\\$UDPServerAddress 127.0.0.1\n\\\$ModLoad imudp/g" /etc/rsyslog.conf
+perl -p -i -e "s/#\\\$UDPServerRun 514/\\\$UDPServerRun 514/g" /etc/rsyslog.conf
+
 ### Replace haproxy env vars
 perl -p -i -e "s/HAPROXY_MAXCONN/${HAPROXY_MAXCONN}/g" /etc/haproxy/haproxy.cfg
 perl -p -i -e "s/HAPROXY_TIMEOUT_CONNECT/${HAPROXY_TIMEOUT_CONNECT}/g" /etc/haproxy/haproxy.cfg
