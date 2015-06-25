@@ -41,8 +41,8 @@ for domain_cfg in `cat ${DOMAIN_LIST}`; do
   set -e
   if [ `echo "${BACKEND_SERVERS}" | grep . | wc -l` -eq 0 ]; then 
     echo "***** WARNING ***** COULD NOT FIND ANY CONTAINER FOR DOMAIN ${domain} - SKIPPING THIS DOMAIN"
-    echo "***** WARNING ***** THIS IS A FATAL ERROR IF WP CONTAINERS ALREADY EXIST FOR DOMAIN ${domain}"
-    echo "***** WARNING ***** MAYBE YOU DID NOT CREATE THE SERVICE LINKING WITH NAME \"${domain}\"?"
+    echo "THIS IS A FATAL ERROR IF WP CONTAINERS ALREADY EXIST FOR DOMAIN ${domain}"
+    echo "MAYBE YOU DID NOT CREATE THE SERVICE LINKING WITH NAME \"${domain}\"?"
     continue
   fi
 
