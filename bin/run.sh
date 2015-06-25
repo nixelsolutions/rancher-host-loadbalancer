@@ -36,7 +36,7 @@ for domain_cfg in `cat ${DOMAIN_LIST}`; do
 
   # Get servers for backend
   # If no servers are found, print a warning and continue
-  BACKEND_SERVERS=`dig +short ${domain}`
+  BACKEND_SERVERS=`dig +short ${domain} | grep "^10.42"`
   if [ `echo "${BACKEND_SERVERS}" | grep . | wc -l` -eq 0 ]; then 
     echo "***** WARNING ***** COULD NOT FIND ANY CONTAINER FOR DOMAIN ${domain} - SKIPPING THIS DOMAIN"
     echo "***** WARNING ***** THIS IS A FATAL ERROR IF WP CONTAINERS ALREADY EXIST FOR DOMAIN ${domain}"
@@ -45,6 +45,7 @@ for domain_cfg in `cat ${DOMAIN_LIST}`; do
   fi
 
   SERVERS_COUNT=0
+  SERVERS=""
   for server in ${BACKEND_SERVERS}; do
     SERVERS="${SERVERS}\n\
     server wp${SERVERS_COUNT} ${server}:${domain_port} port ${domain_port} check inter ${HAPROXY_CHECK_INTERVAL} rise ${HAPROXY_CHECK_RISE} fall ${HAPROXY_CHECK_FALL}" 
@@ -65,7 +66,7 @@ backend ${domain}\n\
   http-check disable-on-404\n\
   http-check expect string ${HAPROXY_CHECK_STRING}\n\
   option httpchk GET ${HAPROXY_CHECK} HTTP/1.0\n\
-  ${SERVERS}"
+  ${SERVERS}\n"
 
 done
 
